@@ -1,0 +1,85 @@
+body{
+    background-color: #2e2d2c;
+    overflow: hidden; /* When canvas is too big */
+    font-family: Arial, Verdana, sans-serif;
+}
+
+canvas {
+    border: 1px solid black; /* Add a border to the canvas for visibility */
+    display: block; /* Make the canvas a block-level element */
+    margin: auto; /* Center the canvas horizontally */
+    position: absolute; /* Position the canvas absolutely */
+    top: 0; bottom: 0; /* Center the canvas vertically */
+    left: 0; right: 0; /* Center the canvas horizontally */
+    background-color: #2e2d2c;
+    filter: blur(4px) brightness(40%); /* Apply blur and grey filter */
+}
+
+#canvas-background{
+    z-index: -1;
+}
+
+#content{
+    color: white;
+    z-index: 100;
+    position: relative;
+    top: 25vh;
+    left: 50px;
+    left: 15vw;
+    max-width: 600px;
+
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+#content.fade-in-slide{
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#title{
+    font-size: 48px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+
+#project-list{
+    position: relative;
+    top: 100px;
+    left: 40px;
+}
+
+#project-list > ul {
+    line-height: 2em; /* Sets the line height to 1.5 times the font size */
+    font-size: 1.5em;
+}
+
+a {
+    color: inherit; /* Use the default text color of the parent element */
+    text-decoration: none; /* Remove underline */
+}
+
+a:hover {
+    /* Optional: Add styles for when the link is hovered */
+    text-decoration: underline; /* Underline on hover (if desired) */
+    color: #D3D3D3; /* Change text color on hover */
+}
+
+.pause-btn {
+    display: none;
+    position: absolute; /* Position the button absolutely within the canvas container */
+    bottom: 20vh; /* 10px from the bottom */
+    right: 20vw; /* 10px from the right */
+    padding: 8px 16px; /* Padding for better appearance */
+    background-color: #007bff; /* Button background color */
+    color: #fff; /* Button text color */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Apply border radius for rounded corners */
+}
+
+.pause-btn:hover {
+    background-color: #0056b3; /* Darker background color on hover */
+}
