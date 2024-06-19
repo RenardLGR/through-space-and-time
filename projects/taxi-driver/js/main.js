@@ -1,6 +1,12 @@
 import Board from './Board.js'
 import { COLS, ROWS, CELL_SIZE, period } from './constants.js';
 
+const pauseBtn = document.querySelector('.pause-btn')
+pauseBtn.addEventListener('click', () => {
+    isPaused = !isPaused
+    pauseBtn.innerText = isPaused ? "Play" : "Pause"
+})
+
 const canvas = document.getElementById('myCanvas');
 const context = canvas.getContext('2d');
 
@@ -32,9 +38,8 @@ function animate(now = 0) {
     if(time.elapsed > period && !isPaused){
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-        board.next() //TODO
-        board.draw() //TODO
-        // isPaused = true
+        //board.next() //TODO
+        board.drawAsset(0, 0) //TODO
     }
 
     requestId = requestAnimationFrame(animate)
