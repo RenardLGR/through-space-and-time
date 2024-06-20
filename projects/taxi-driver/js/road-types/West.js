@@ -1,10 +1,10 @@
 import { COLS, ROWS, CELL_SIZE, period } from '.././constants.js';
+import Road from './Road.js'
 
-export default class West{
-    constructor(startX, startY, context){
-        this.context = context
-        this.startX = startX
-        this.startY = startY
+export default class West extends Road{
+    constructor(row, col, context){
+        super(row, col, context)
+        this.id = "west"
         this.northPossibilities = ["plus", "vertical", "east", "south", "west"]
         this.eastPossibilities = ["void", "vertical", "east"]
         this.southPossibilities = ["plus", "vertical", "north", "east", "west"]

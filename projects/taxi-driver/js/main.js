@@ -39,7 +39,8 @@ function animate(now = 0) {
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
         //board.next() //TODO
-        board.drawAsset(0, 0) //TODO
+        // board.drawAsset(0, 0) //TODO
+        board.draw() //TODO
     }
 
     requestId = requestAnimationFrame(animate)

@@ -13,10 +13,8 @@ export default class Board {
     constructor(context){
         this.context = context
         this.grid = Array.from({length : ROWS}, _ => Array(COLS))
-        this.color = "black"
-        this.color2 = "red"
-        this.twitch = true
-        this.drawAsset(0, 0)
+        this.options = ["void", "plus", "horizontal", "vertical", "north", "east", "south", "west"]
+        this.initialize()
     }
 
     //From the existing environment, this function generates the next generation
@@ -24,39 +22,61 @@ export default class Board {
         
     }
 
-    //61x61 px
-    drawAsset(startX, startY){
-        let piece = new West(startX, startY, this.context)
-        piece.draw()
+    initialize(){
+        for(let row=0 ; row<ROWS ; row++){
+            for(let col=0 ; col<COLS ; col++){
+                let rand = this.randomNumberBetween(0, this.options.length - 1)
+                this.putRoad(this.options[rand], row, col)
+            }
+        }
+    }
+
+    putRoad(id, row, col){
+        switch (id) {
+            case "void":
+                this.grid[row][col] = new Void(row, col, this.context)
+                break;
+
+            case "plus":
+                this.grid[row][col] = new Plus(row, col, this.context)
+                break;
+
+            case "horizontal":
+                this.grid[row][col] = new Horizontal(row, col, this.context)
+                break;
+
+            case "vertical":
+                this.grid[row][col] = new Vertical(row, col, this.context)
+                break;
+
+            case "north":
+                this.grid[row][col] = new North(row, col, this.context)
+                break;
+
+            case "east":
+                this.grid[row][col] = new East(row, col, this.context)
+                break;
+
+            case "south":
+                this.grid[row][col] = new South(row, col, this.context)
+                break;
+
+            case "west":
+                this.grid[row][col] = new West(row, col, this.context)
+                break;
+
+            default:
+                throw new Error(`Tried to put a road type of id: ${id}, but it doesn't match existing elements.`)
+                break;
+        }
     }
 
     draw(){
         for(let row=0 ; row<ROWS ; row++){
             for(let col=0 ; col<COLS ; col++){
-                // Draw blue border
-                this.context.strokeStyle = 'blue';
-                this.context.lineWidth = 1; // Adjust the border width as needed
-                this.context.strokeRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                if(this.twitch){
-                    if((row + col) % 2 === 0){
-                        this.context.fillStyle = this.color
-                        this.context.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                    }else{
-                        this.context.fillStyle = this.color2
-                        this.context.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                    }
-                }else{
-                    if((row + col) % 2 === 0){
-                        this.context.fillStyle = this.color2
-                        this.context.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                    }else{
-                        this.context.fillStyle = this.color
-                        this.context.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                    }
-                }
+                this.grid[row][col].draw()
             }
         }
-        this.twitch = !this.twitch
     }
 
     // (number, number) : number
