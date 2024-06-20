@@ -1,6 +1,13 @@
 import { COLS, ROWS, CELL_SIZE, period } from './constants.js';
 
+import Void from "./road-types/Void.js"
+import Plus from "./road-types/Plus.js"
+import Horizontal from "./road-types/Horizontal.js"
+import Vertical from "./road-types/Vertical.js"
+import North from "./road-types/North.js"
 import East from "./road-types/East.js"
+import South from "./road-types/South.js"
+import West from "./road-types/West.js"
 
 export default class Board {
     constructor(context){
@@ -19,8 +26,8 @@ export default class Board {
 
     //61x61 px
     drawAsset(startX, startY){
-        let east = new East(startX, startY, this.context)
-        east.draw()
+        let piece = new West(startX, startY, this.context)
+        piece.draw()
     }
 
     draw(){
