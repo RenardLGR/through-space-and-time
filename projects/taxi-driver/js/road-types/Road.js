@@ -5,8 +5,8 @@ export default class Road{
         this.context = context
         this.row = row
         this.col = col
-        this.startX = row * CELL_SIZE
-        this.startY = col * CELL_SIZE
+        this.startX = col * CELL_SIZE
+        this.startY = row * CELL_SIZE
         this.id = "road"
     }
 }

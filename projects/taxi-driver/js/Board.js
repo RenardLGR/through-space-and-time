@@ -14,6 +14,7 @@ export default class Board {
         this.context = context
         this.grid = Array.from({length : ROWS}, _ => Array(COLS))
         this.options = ["void", "plus", "horizontal", "vertical", "north", "east", "south", "west"]
+        this.entropy = Array.from({length : ROWS}, _ => Array(COLS).fill(this.options.slice()))
         this.initialize()
     }
 
@@ -22,15 +23,52 @@ export default class Board {
         
     }
 
+    // (void) : void
     initialize(){
-        for(let row=0 ; row<ROWS ; row++){
-            for(let col=0 ; col<COLS ; col++){
-                let rand = this.randomNumberBetween(0, this.options.length - 1)
-                this.putRoad(this.options[rand], row, col)
+        let i = 0
+        while(!this.isGridFull()){
+            let smallestEntropy = Infinity
+            let smallestEntropyCoord = [-1, -1]
+            for(let row=0 ; row<ROWS ; row++){
+                for(let col=0 ; col<COLS ; col++){
+                    if(this.entropy[row][col].length < smallestEntropy && this.grid[row][col] === undefined){
+                        smallestEntropy = this.entropy[row][col].length
+                        smallestEntropyCoord = [row, col]
+                    }
+                }
             }
+
+            //A road can't be placed because no possibility would fit
+            if(smallestEntropy === 0){
+                this.grid = Array.from({length : ROWS}, _ => Array(COLS))
+                this.entropy = Array.from({length : ROWS}, _ => Array(COLS).fill(this.options.slice()))
+                break
+            }
+
+            const [tryRow, tryCol] = smallestEntropyCoord
+            const rand = this.randomNumberBetween(0, this.entropy[tryRow][tryCol].length - 1)
+            const tryId = this.entropy[tryRow][tryCol][rand]
+            this.putRoad(tryId, tryRow, tryCol)
+            this.updateEntropy(tryId, tryRow, tryCol)
+            // i++
+            // console.log(JSON.parse(JSON.stringify(this.entropy)));
+            // if(i > 1) return
         }
+
     }
 
+    // (void) : bool
+    isGridFull(){
+        for(let row=0 ; row<ROWS ; row++){
+            for(let col=0 ; col<COLS ; col++){
+                if(this.grid[row][col] === undefined) return false
+            }
+        }
+        return true
+    }
+
+    //Put a road type in grid
+    // (string, number, number) : void
     putRoad(id, row, col){
         switch (id) {
             case "void":
@@ -71,10 +109,39 @@ export default class Board {
         }
     }
 
+    //Fixing a road in the grid has a behavior on the neighbors' entropy
+    // (string, number, number) : void
+    updateEntropy(id, row, col){
+        this.entropy[row][col] = [id]
+
+        //Update north entropy
+        if(row - 1 >= 0){
+            const toKeep = this.grid[row][col].northPossibilities
+            this.entropy[row-1][col] = this.entropy[row-1][col].filter(id => toKeep.includes(id))
+        }
+        //Update east entropy
+        if(col + 1 < COLS){
+            const toKeep = this.grid[row][col].eastPossibilities
+            this.entropy[row][col+1] = this.entropy[row][col+1].filter(id => toKeep.includes(id))
+        }
+        //Update south entropy
+        if(row + 1 < ROWS){
+            const toKeep = this.grid[row][col].southPossibilities
+            this.entropy[row+1][col] = this.entropy[row+1][col].filter(id => toKeep.includes(id))
+        }
+        //Update west entropy
+        if(col - 1 >= 0){
+            const toKeep = this.grid[row][col].eastPossibilities
+            this.entropy[row][col-1] = this.entropy[row][col-1].filter(id => toKeep.includes(id))
+        }
+    }
+
     draw(){
         for(let row=0 ; row<ROWS ; row++){
             for(let col=0 ; col<COLS ; col++){
-                this.grid[row][col].draw()
+                if(this.grid[row][col]){
+                    this.grid[row][col].draw()
+                }
             }
         }
     }

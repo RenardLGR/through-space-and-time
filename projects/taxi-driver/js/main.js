@@ -16,6 +16,7 @@ context.canvas.height = ROWS * CELL_SIZE
 // context.scale(CELL_SIZE, CELL_SIZE) //the scale of 1 will now be scaled to a block size
 
 let board = new Board(context)
+window.board = board //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
 let isPaused = false
 let requestId
 let time
