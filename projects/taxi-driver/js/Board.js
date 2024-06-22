@@ -25,8 +25,8 @@ export default class Board {
 
     // (void) : void
     initialize(){
-        let i = 0
         while(!this.isGridFull()){
+            //Place a road on the smallest entropy
             let smallestEntropy = Infinity
             let smallestEntropyCoord = [-1, -1]
             for(let row=0 ; row<ROWS ; row++){
@@ -50,9 +50,6 @@ export default class Board {
             const tryId = this.entropy[tryRow][tryCol][rand]
             this.putRoad(tryId, tryRow, tryCol)
             this.updateEntropy(tryId, tryRow, tryCol)
-            // i++
-            // console.log(JSON.parse(JSON.stringify(this.entropy)));
-            // if(i > 1) return
         }
 
     }
@@ -131,7 +128,7 @@ export default class Board {
         }
         //Update west entropy
         if(col - 1 >= 0){
-            const toKeep = this.grid[row][col].eastPossibilities
+            const toKeep = this.grid[row][col].westPossibilities
             this.entropy[row][col-1] = this.entropy[row][col-1].filter(id => toKeep.includes(id))
         }
     }
