@@ -9,6 +9,8 @@ import East from "./road-types/East.js"
 import South from "./road-types/South.js"
 import West from "./road-types/West.js"
 
+import Car from "./Car.js"
+
 export default class Board {
     constructor(context){
         this.context = context
@@ -16,15 +18,18 @@ export default class Board {
         this.options = ["void", "plus", "horizontal", "vertical", "north", "east", "south", "west"]
         this.entropy = Array.from({length : ROWS}, _ => Array(COLS).fill(this.options.slice()))
         this.initialize()
+        this.car = [200, 200]
     }
 
     //From the existing environment, this function generates the next generation
     next(){
-        
+        this.car[0] += 2
+        this.car[1] += 1
     }
 
     // (void) : void
     initialize(){
+        //Initialize grid
         while(!this.isGridFull()){
             //Place a road on the smallest entropy
             let smallestEntropy = Infinity
@@ -52,6 +57,12 @@ export default class Board {
             this.updateEntropy(tryId, tryRow, tryCol)
         }
 
+        console.log("grid created", Date.now())
+
+        //Initialize Car
+        this.car = new Car(this.context, this.grid)
+
+        console.log("car created", Date.now())
     }
 
     // (void) : bool
@@ -138,10 +149,16 @@ export default class Board {
             for(let col=0 ; col<COLS ; col++){
                 if(this.grid[row][col]){
                     this.grid[row][col].draw()
+                    this.grid[row][col].drawRedBorder()
                 }
             }
         }
     }
+
+
+    //=================================================================
+    //==================== ALL PURPOSE FUNCTIONS ======================
+    //=================================================================
 
     // (number, number) : number
     randomNumberBetween(min, max){

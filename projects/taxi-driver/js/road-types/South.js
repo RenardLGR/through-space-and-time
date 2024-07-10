@@ -9,6 +9,7 @@ export default class South extends Road{
         this.eastPossibilities = ["plus", "horizontal", "north", "south", "west"]
         this.southPossibilities = ["plus", "vertical", "north", "east", "west"]
         this.westPossibilities = ["plus", "horizontal", "north", "east", "south"]
+        this.roadConnections = ["east", "south", "west"]
     }
 
 

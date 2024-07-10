@@ -17,6 +17,7 @@ context.canvas.height = ROWS * CELL_SIZE
 
 let board = new Board(context)
 window.board = board //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
+board.draw()
 let isPaused = false
 let requestId
 let time
@@ -31,7 +32,7 @@ function play() {
     //     cancelAnimationFrame(requestId)
     // }
 
-    animate()
+    //animate()
 }
 
 function animate(now = 0) {
@@ -39,7 +40,7 @@ function animate(now = 0) {
     if(time.elapsed > period && !isPaused){
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-        //board.next() //TODO
+        // board.next() //TODO
         // board.drawAsset(0, 0) //TODO
         board.draw() //TODO
     }

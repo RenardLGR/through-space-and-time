@@ -9,4 +9,11 @@ export default class Road{
         this.startY = row * CELL_SIZE
         this.id = "road"
     }
+
+    drawRedBorder(){
+        let size = CELL_SIZE
+        
+        this.context.strokeStyle = "red";
+        this.context.strokeRect(this.startX, this.startY, size, size);
+    }
 }

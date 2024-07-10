@@ -9,6 +9,7 @@ export default class Void extends Road{
         this.eastPossibilities = ["void", "vertical", "east"]
         this.southPossibilities = ["void", "horizontal", "south"]
         this.westPossibilities = ["void", "vertical", "west"]
+        this.roadConnections = []
     }
 
 

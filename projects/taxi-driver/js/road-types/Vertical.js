@@ -9,6 +9,7 @@ export default class Vertical extends Road{
         this.eastPossibilities = ["void", "vertical", "east"]
         this.southPossibilities = ["plus", "vertical", "north", "east", "west"]
         this.westPossibilities = ["void", "vertical", "west"]
+        this.roadConnections = ["north", "south"]
     }
 
 
