@@ -18,13 +18,15 @@ export default class Board {
         this.options = ["void", "plus", "horizontal", "vertical", "north", "east", "south", "west"]
         this.entropy = Array.from({length : ROWS}, _ => Array(COLS).fill(this.options.slice()))
         this.initialize()
-        this.car = [200, 200]
+        this.car
     }
 
     //From the existing environment, this function generates the next generation
     next(){
+        //TODO should be this.car.next() or something like that with next() updating car's coordinates
         this.car[0] += 2
         this.car[1] += 1
+        this.drawCar()
     }
 
     // (void) : void
@@ -60,9 +62,14 @@ export default class Board {
         console.log("grid created", Date.now())
 
         //Initialize Car
-        this.car = new Car(this.context, this.grid)
-
+        this.initializeCar()
         console.log("car created", Date.now())
+    }
+
+    // (void) : void
+    initializeCar(){
+        this.car = new Car(this.context, this.grid)
+        this.drawCar()
     }
 
     // (void) : bool
@@ -153,6 +160,11 @@ export default class Board {
                 }
             }
         }
+        this.car.drawPixelPath()
+    }
+
+    drawCar(){
+        this.car.draw()
     }
 
 

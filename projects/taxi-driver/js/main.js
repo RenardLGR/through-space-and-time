@@ -22,7 +22,7 @@ let isPaused = false
 let requestId
 let time
 
-play()
+// play()
 
 
 function play() {
