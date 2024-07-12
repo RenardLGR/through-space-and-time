@@ -23,9 +23,7 @@ export default class Board {
 
     //From the existing environment, this function generates the next generation
     next(){
-        //TODO should be this.car.next() or something like that with next() updating car's coordinates
-        this.car[0] += 2
-        this.car[1] += 1
+        this.car.next()
         this.drawCar()
     }
 
@@ -151,6 +149,7 @@ export default class Board {
         }
     }
 
+    //TODO : drawing the grid and the car should be 2 different things since only the car is redrawn
     draw(){
         for(let row=0 ; row<ROWS ; row++){
             for(let col=0 ; col<COLS ; col++){

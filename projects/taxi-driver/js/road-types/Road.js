@@ -10,6 +10,7 @@ export default class Road{
         this.id = "road"
     }
 
+    // Debug/visualizing purposes : Draw the red border around cells
     drawRedBorder(){
         let size = CELL_SIZE
         

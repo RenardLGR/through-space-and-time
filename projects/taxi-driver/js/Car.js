@@ -4,53 +4,115 @@ export default class Car{
     constructor(context, grid){
         this.context = context
         this.grid = grid
+        this.carWidth = 14
+        this.carHeight = 28
+        this.isMoving = true
         this.direction = "north" // where the front of the car points to
         this.gridPosition = [] // [row, col]
-        this.position = [0, 0] // [y, x] in pixels
-        this.path = []
+        this.position = [] // [y, x] in pixels
+        this.cellPath = [] // cell path in [row, col]
+        this.pixelPath = [] // pixel path in [y, x]
         this.target = [] // [row, col]
         this.start = [] // [row, col]
+        this.speed = 5 // in px/refresh
 
-        this.tempPathingAttempt()
+        this.initialize()
+    }
+
+    next(){
+        const [nearestCheckpointY, nearestCheckpointX] = this.pixelPath[0]
+        const [currY, currX] = this.position
+        console.log("before:",this.position);
+        if(currX-nearestCheckpointX > 0){
+            this.direction = "west"
+            this.position[1] = Math.max(currX-this.speed, nearestCheckpointX)
+        }
+        if(currX-nearestCheckpointX < 0){
+            this.direction = "east"
+            this.position[1] = Math.min(currX+this.speed, nearestCheckpointX)
+        }
+        if(currY-nearestCheckpointY > 0){
+            this.direction = "north"
+            this.position[0] = Math.max(currY-this.speed, nearestCheckpointY)
+        }
+        if(currY-nearestCheckpointY < 0){
+            this.direction = "south"
+            this.position[0] = Math.min(currY+this.speed, nearestCheckpointY)
+        }
+        console.log("after:",this.position);
+
+
+        //Check if the checkpoint is reached, to which case checkpoint is removed and we can go to the next
+        if(this.position[0]===nearestCheckpointY && this.position[1]===nearestCheckpointX){
+            this.pixelPath.shift()
+        }
+    }
+
+    initialize(){
+        this.start = this.getRandomRoad()
+        this.target = this.getRandomRoad()
+        this.cellPath = this.calculateCellPath(this.start, this.target)
+        console.log("cell path:", this.cellPath);
+        this.pixelPath = this.calculatePixelPath(this.cellPath)
+        this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
+        console.log("pixel path:", this.pixelPath);
+        // console.log("position:", this.position);
     }
 
 
     draw(){
+        // Function to draw the rotated car image
+        const drawRotatedImage = (ctx, image, x, y, width, height, angle) => {
+            ctx.save(); // Save the current canvas state
+
+            // Move the canvas origin to the image center
+            ctx.translate(x + width / 2, y + height / 2);
+        
+            // Rotate the canvas by the specified angle
+            ctx.rotate(angle * Math.PI / 180);
+        
+            // Draw the image, offsetting by half width and height to center it
+            ctx.drawImage(image, -width / 2, -height / 2, width, height);
+        
+            ctx.restore(); // Restore the canvas state
+        }
+
         var img = new Image();
         img.src = './img/car_topview.svg'
-        //Img appears one page load
-        img.onload = () => this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
-        //Img is redrawn every steps
-        this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
+        console.log("car drawn!");
+        const [y, x] = this.position
+        //Car is facing North
+        if(this.direction === "north"){
+            //Img appears one page load
+            img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 0)
+            // //Img is redrawn every steps
+            // this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
+        }
+        else{
+            //TODO
+            //Img appears one page load
+            img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 0)
+            // //Img is redrawn every steps
+            // this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
+        }
     }
 
-    //TODEL
-    tempPathingAttempt(){
-        let start = this.getRandomRoad()
-        let target = this.getRandomRoad()
-        this.calculatePath(start, target)
-        console.log(`start : ${start} : ${this.grid[start[0]][start[1]].id}`)
-        console.log(`target : ${target} : ${this.grid[target[0]][target[1]].id}`)
-        console.log(this.path)
-    }
-
-    //TODEL
+    // (void) : void
+    // Debug/visualizing purposes : Draw the path the taxi will take
     drawPixelPath(){
         this.context.strokeStyle = "blue"
-        let pixelPath = this.calculatePixelPath(this.path)
-        console.log(pixelPath);
 
         this.context.beginPath()
-        this.context.moveTo(pixelPath[0][1], pixelPath[0][0])
-        pixelPath.forEach(([r, c]) => {
+        this.context.moveTo(this.pixelPath[0][1], this.pixelPath[0][0])
+        this.pixelPath.forEach(([r, c]) => {
             this.context.lineTo(c, r) // c, r is NOT a typo
         })
         this.context.stroke()
     }
 
-    // ([number, number], [number, number]) : void
+    // ([number, number], [number, number]) : Array<Array<number>>
     // calculate which cells should be visited in order to go from start to target
-    calculatePath(start, target){
+    calculateCellPath(start, target){
         //Arrow functions inherit the this context from the enclosing scope.
         const solve = (inP) => {
             if(inP.length >= pathMaxLength) return
@@ -62,7 +124,7 @@ export default class Car{
 
             if(currRow === targetRow && currCol === targetCol){
                 pathMaxLength = inP.length
-                this.path = inP
+                res = inP
                 return
             }
 
@@ -97,12 +159,15 @@ export default class Car{
 
         const [startRow, startCol] = start
         const [targetRow, targetCol] = target
+        let res = []
         let pathMaxLength = Infinity
         solve([start])
+        return res
     }
 
     // (Array<Array<number>>) : Array<Array<number>>
     calculatePixelPath(path){
+        //middle of cell -> side of cell -> middle of next cell -> etc. -> middle of target
         let res = []
 
         for(let i=0 ; i<path.length ; i++){

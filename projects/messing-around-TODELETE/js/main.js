@@ -16,19 +16,18 @@ context.canvas.height = ROWS * CELL_SIZE
 // context.scale(CELL_SIZE, CELL_SIZE) //the scale of 1 will now be scaled to a block size
 
 let board = new Board(context)
-window.board = board //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
-board.draw() //draw background city
-let isPaused = false
+board.draw()
+let isPaused = true
 let requestId
 let time
 
-play()
+// play()
 
 
 function play() {
     time = { start: 0, elapsed: 0}
     time.start = performance.now() //reset time
-    // if (requestId) {
+    // if (requestId) { //not sure what it does but it was here
     //     cancelAnimationFrame(requestId)
     // }
 
@@ -40,9 +39,9 @@ function animate(now = 0) {
     if(time.elapsed > period && !isPaused){
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-        board.next() //TODO
-        board.draw() //TODO
+        board.next()
+        board.draw()
     }
 
-    requestId = requestAnimationFrame(animate)
+    requestId = requestAnimationFrame(animate) //not sure what it does but it make the animation work
 }
