@@ -36,7 +36,7 @@ export default class Board {
         var img = new Image();
         img.src = './img/car_topview.svg'
 
-        img.onload = () => drawRotatedImage(this.context, img, this.position[0], this.position[1], 14, 28, 90);
+        img.onload = () => drawRotatedImage(this.context, img, this.position[0], this.position[1], 14, 28, 270);
 
         // Function to draw the rotated image
         const drawRotatedImage = (ctx, image, x, y, width, height, angle) => {

@@ -22,7 +22,6 @@ export default class Car{
     next(){
         const [nearestCheckpointY, nearestCheckpointX] = this.pixelPath[0]
         const [currY, currX] = this.position
-        console.log("before:",this.position);
         if(currX-nearestCheckpointX > 0){
             this.direction = "west"
             this.position[1] = Math.max(currX-this.speed, nearestCheckpointX)
@@ -39,12 +38,16 @@ export default class Car{
             this.direction = "south"
             this.position[0] = Math.min(currY+this.speed, nearestCheckpointY)
         }
-        console.log("after:",this.position);
 
 
         //Check if the checkpoint is reached, to which case checkpoint is removed and we can go to the next
         if(this.position[0]===nearestCheckpointY && this.position[1]===nearestCheckpointX){
             this.pixelPath.shift()
+        }
+
+        //Check if the target is reached, in which case get a new target
+        if(this.pixelPath.length === 0){
+            this.newTarget()
         }
     }
 
@@ -59,6 +62,14 @@ export default class Car{
         // console.log("position:", this.position);
     }
 
+    //Once a taxi mission has been completed, get a new mission
+    newTarget(){
+        this.start = this.target
+        this.target = this.getRandomRoad()
+        this.cellPath = this.calculateCellPath(this.start, this.target)
+        this.pixelPath = this.calculatePixelPath(this.cellPath)
+        this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
+    }
 
     draw(){
         // Function to draw the rotated car image
@@ -79,21 +90,29 @@ export default class Car{
 
         var img = new Image();
         img.src = './img/car_topview.svg'
-        console.log("car drawn!");
+
         const [y, x] = this.position
-        //Car is facing North
-        if(this.direction === "north"){
-            //Img appears one page load
-            img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 0)
-            // //Img is redrawn every steps
-            // this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
-        }
-        else{
-            //TODO
-            //Img appears one page load
-            img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 0)
-            // //Img is redrawn every steps
-            // this.context.drawImage(img, this.position[0], this.position[1], 14, 28)
+        switch (this.direction) {
+            case "north":
+                //Car is facing North
+                img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 0)
+                break;
+
+            case "east":
+                img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 90)
+                break;
+
+            case "south":
+                img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 180)
+                break;
+
+            case "west":
+                img.onload = () => drawRotatedImage(this.context, img, x-this.carWidth/2, y-this.carHeight/2, this.carWidth, this.carHeight, 270)
+                break;
+        
+            default:
+                throw new Error("Error : direction unknown, trying read direction : " + this.direction)
+                break;
         }
     }
 
@@ -157,7 +176,6 @@ export default class Car{
         }
 
 
-        const [startRow, startCol] = start
         const [targetRow, targetCol] = target
         let res = []
         let pathMaxLength = Infinity
