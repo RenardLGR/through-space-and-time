@@ -54,11 +54,12 @@ export default class Car{
     initialize(){
         this.start = this.getRandomRoad()
         this.target = this.getRandomRoad()
-        this.cellPath = this.calculateCellPath(this.start, this.target)
-        console.log("cell path:", this.cellPath);
+        // this.cellPath = this.calculateCellPath(this.start, this.target)
+        this.cellPath = this.calculateCellPathDijkstra(this.start, this.target)
+        // console.log("cell path:", this.cellPath);
         this.pixelPath = this.calculatePixelPath(this.cellPath)
         this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
-        console.log("pixel path:", this.pixelPath);
+        // console.log("pixel path:", this.pixelPath);
         // console.log("position:", this.position);
     }
 
@@ -66,7 +67,8 @@ export default class Car{
     newTarget(){
         this.start = this.target
         this.target = this.getRandomRoad()
-        this.cellPath = this.calculateCellPath(this.start, this.target)
+        // this.cellPath = this.calculateCellPath(this.start, this.target)
+        this.cellPath = this.calculateCellPathDijkstra(this.start, this.target)
         this.pixelPath = this.calculatePixelPath(this.cellPath)
         this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
     }
@@ -131,9 +133,12 @@ export default class Car{
 
     // ([number, number], [number, number]) : Array<Array<number>>
     // calculate which cells should be visited in order to go from start to target
+    //! DEPRECATED
     calculateCellPath(start, target){
+        console.log(`start : ${start}, target : ${target}`)
         //Arrow functions inherit the this context from the enclosing scope.
         const solve = (inP) => {
+            iterations++
             if(inP.length >= pathMaxLength) return
 
             let visited = Array.from({length : ROWS}, _ => Array(COLS).fill(false))
@@ -175,15 +180,112 @@ export default class Car{
             }
         }
 
+        let iterations = 0
 
         const [targetRow, targetCol] = target
         let res = []
         let pathMaxLength = Infinity
         solve([start])
+        console.log(`start : ${start}, target : ${target}, iteration : ${iterations}`)
+        return res
+    }
+
+    calculateCellPathDijkstra(start, target){
+        const [startRow, startCol] = start
+        const [targetRow, targetCol] = target
+
+        let visited = Array.from({length : ROWS}, _ => Array(COLS).fill(false))
+        // visited[startRow][startCol] = true
+
+        //Distance of a current cell from the start
+        let distances = Array.from({length : ROWS}, _ => Array(COLS).fill(Infinity))
+        distances[startRow][startCol] = 0
+
+        let predecessor = Array.from({length : ROWS}, _ => Array(COLS).fill(undefined))
+        predecessor[startRow][startCol] = [startRow, startCol]
+
+        while(true){
+            let minDistance = Infinity
+            let current = null
+
+            // Find the unvisited cell with the smallest distance
+            for(let row=0 ; row<ROWS ; row++){
+                for(let col=0 ; col<COLS ; col++){
+                    if(this.grid[row][col].id !== "void" && !visited[row][col] && distances[row][col]<minDistance){
+                        minDistance = distances[row][col]
+                        current = [row, col]
+                    }
+                }
+            }
+
+            if(current === null){
+                //no more cells to visit
+                break
+            }
+
+            const [currRow, currCol] = current
+            visited[currRow][currCol] = true
+
+            // Update distances of neighbors, knowing our current distance from the start
+            //Is North connected ?
+            if(currRow-1>=0 && this.grid[currRow][currCol].roadConnections.includes("north")){
+                // Update distance of nbrs if needed
+                let newDistance = distances[currRow][currCol] + 1
+                if(newDistance < distances[currRow-1][currCol]){
+                    distances[currRow-1][currCol] = distances[currRow][currCol] + 1
+                    predecessor[currRow-1][currCol] = current
+                }
+            }
+            //Is East connected ?
+            if(currCol+1<COLS && this.grid[currRow][currCol].roadConnections.includes("east")){
+                let newDistance = distances[currRow][currCol] + 1
+                if(newDistance < distances[currRow][currCol+1]){
+                    distances[currRow][currCol+1] = distances[currRow][currCol] + 1
+                    predecessor[currRow][currCol+1] = current
+                }
+            }
+            //Is South connected ?
+            if(currRow+1<ROWS && this.grid[currRow][currCol].roadConnections.includes("south")){
+                let newDistance = distances[currRow][currCol] + 1
+                if(newDistance < distances[currRow+1][currCol]){
+                    distances[currRow+1][currCol] = distances[currRow][currCol] + 1
+                    predecessor[currRow+1][currCol] = current
+                }
+            }
+            //Is West connected ?
+            if(currCol-1>=0 && this.grid[currRow][currCol].roadConnections.includes("west")){
+                let newDistance = distances[currRow][currCol] + 1
+                if(newDistance < distances[currRow][currCol-1]){
+                    distances[currRow][currCol-1] = distances[currRow][currCol] + 1
+                    predecessor[currRow][currCol-1] = current
+                }
+            }
+        }
+
+        //In order to get the path, from the end, find the predecessor, keep doing it until we reach the start
+        let res = [target]
+        let [currCellRow, currCellCol] = target
+
+        console.log("predecessor Array :", predecessor);
+
+        while(currCellRow!==startRow || currCellCol!==startCol){ // Or !(currCellRow===startRow && currCellCol===startCol)
+            res.unshift(predecessor[currCellRow][currCellCol])
+            // [currCellRow, currCellCol] = [...predecessor[currCellRow][currCellCol]]
+            let newCurCellRow = predecessor[currCellRow][currCellCol][0]
+            let newCurCellCol = predecessor[currCellRow][currCellCol][1]
+            currCellRow = newCurCellRow
+            currCellCol = newCurCellCol
+        }
+        // res.unshift(start)
+
+        console.log("start :", start)
+        console.log("target :", target)
+        console.log("path :", res)
         return res
     }
 
     // (Array<Array<number>>) : Array<Array<number>>
+    //Once a cell path has been found, convert it to a pixel path our car can follow
     calculatePixelPath(path){
         //middle of cell -> side of cell -> middle of next cell -> etc. -> middle of target
         let res = []

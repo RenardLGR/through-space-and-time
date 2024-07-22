@@ -17,7 +17,7 @@ context.canvas.height = ROWS * CELL_SIZE
 
 let board = new Board(context)
 window.board = board //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
-board.draw() //draw background city
+// board.drawBoard() //draw background city
 let isPaused = false
 let requestId
 let time
@@ -40,8 +40,7 @@ function animate(now = 0) {
     if(time.elapsed > period && !isPaused){
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-        board.next() //TODO
-        board.draw() //TODO
+        board.next() //TODO //next() triggers a redraw of board, path and car
     }
 
     requestId = requestAnimationFrame(animate)

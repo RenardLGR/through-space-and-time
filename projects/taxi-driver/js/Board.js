@@ -24,7 +24,7 @@ export default class Board {
     //From the existing environment, this function generates the next generation
     next(){
         this.car.next()
-        this.drawCar()
+        this.draw()
     }
 
     // (void) : void
@@ -52,22 +52,27 @@ export default class Board {
 
             const [tryRow, tryCol] = smallestEntropyCoord
             const rand = this.randomNumberBetween(0, this.entropy[tryRow][tryCol].length - 1)
-            const tryId = this.entropy[tryRow][tryCol][rand]
-            this.putRoad(tryId, tryRow, tryCol)
-            this.updateEntropy(tryId, tryRow, tryCol)
+            //straight up 30% chance to have a void (if possible) bcs it makes the map more realistic
+            if(Math.random()<0.3 && this.entropy[tryRow][tryCol][rand].includes("void")){
+                this.putRoad("void", tryRow, tryCol)
+                this.updateEntropy("void", tryRow, tryCol)
+            }else{
+                const tryId = this.entropy[tryRow][tryCol][rand]
+                this.putRoad(tryId, tryRow, tryCol)
+                this.updateEntropy(tryId, tryRow, tryCol)
+            }
         }
-
-        console.log("grid created", Date.now())
+        this.drawBoard()
 
         //Initialize Car
         this.initializeCar()
-        console.log("car created", Date.now())
     }
 
     // (void) : void
     initializeCar(){
         this.car = new Car(this.context, this.grid)
         this.drawCar()
+        this.drawCarPixelPath()
     }
 
     // (void) : bool
@@ -149,8 +154,13 @@ export default class Board {
         }
     }
 
-    //TODO : drawing the grid and the car should be 2 different things since only the car is redrawn
     draw(){
+        this.drawBoard()
+        this.drawCarPixelPath()
+        this.drawCar()
+    }
+
+    drawBoard(){
         for(let row=0 ; row<ROWS ; row++){
             for(let col=0 ; col<COLS ; col++){
                 if(this.grid[row][col]){
@@ -159,11 +169,14 @@ export default class Board {
                 }
             }
         }
-        this.car.drawPixelPath()
     }
 
     drawCar(){
         this.car.draw()
+    }
+
+    drawCarPixelPath(){
+        this.car.drawPixelPath()
     }
 
 
