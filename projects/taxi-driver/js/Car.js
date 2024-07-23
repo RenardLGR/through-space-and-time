@@ -20,6 +20,7 @@ export default class Car{
     }
 
     next(){
+        // See calculatePixelPath(path) to understand what I mean by checkpoint
         const [nearestCheckpointY, nearestCheckpointX] = this.pixelPath[0]
         const [currY, currX] = this.position
         if(currX-nearestCheckpointX > 0){
@@ -54,26 +55,21 @@ export default class Car{
     initialize(){
         this.start = this.getRandomRoad()
         this.target = this.getRandomRoad()
-        // this.cellPath = this.calculateCellPath(this.start, this.target)
         this.cellPath = this.calculateCellPathDijkstra(this.start, this.target)
-        // console.log("cell path:", this.cellPath);
         this.pixelPath = this.calculatePixelPath(this.cellPath)
         this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
-        // console.log("pixel path:", this.pixelPath);
-        // console.log("position:", this.position);
     }
 
-    //Once a taxi mission has been completed, get a new mission
+    //Once a taxi mission/trip has been completed, get a new mission/trip
     newTarget(){
         this.start = this.target
         this.target = this.getRandomRoad()
-        // this.cellPath = this.calculateCellPath(this.start, this.target)
         this.cellPath = this.calculateCellPathDijkstra(this.start, this.target)
         this.pixelPath = this.calculatePixelPath(this.cellPath)
         this.position = [this.pixelPath[0][0], this.pixelPath[0][1]]
     }
 
-    draw(){
+    drawCar(){
         // Function to draw the rotated car image
         const drawRotatedImage = (ctx, image, x, y, width, height, angle) => {
             ctx.save(); // Save the current canvas state
@@ -125,71 +121,30 @@ export default class Car{
 
         this.context.beginPath()
         this.context.moveTo(this.pixelPath[0][1], this.pixelPath[0][0])
-        this.pixelPath.forEach(([r, c]) => {
-            this.context.lineTo(c, r) // c, r is NOT a typo
+        this.pixelPath.forEach(([y, x]) => {
+            this.context.lineTo(x, y) // x, y is NOT a typo
         })
         this.context.stroke()
     }
 
-    // ([number, number], [number, number]) : Array<Array<number>>
-    // calculate which cells should be visited in order to go from start to target
-    //! DEPRECATED
-    calculateCellPath(start, target){
-        console.log(`start : ${start}, target : ${target}`)
-        //Arrow functions inherit the this context from the enclosing scope.
-        const solve = (inP) => {
-            iterations++
-            if(inP.length >= pathMaxLength) return
+    // (void) : void
+    // Draw as a green arrow the target of the current taxi trip
+    drawTripTarget(){
+        this.context.fillStyle = "#7CFC00" //green
 
-            let visited = Array.from({length : ROWS}, _ => Array(COLS).fill(false))
-            inP.forEach(([r, c]) => visited[r][c] = true)
+        // Middle of target cell
+        let [targetY, targetX] = [this.target[0]*CELL_SIZE + 1/2*CELL_SIZE, this.target[1]*CELL_SIZE + 1/2*CELL_SIZE]
 
-            let [currRow, currCol] = inP[inP.length-1]
-
-            if(currRow === targetRow && currCol === targetCol){
-                pathMaxLength = inP.length
-                res = inP
-                return
-            }
-
-
-            //From the current position, loop through connected cells and build the recursion
-            const connectedTo = []
-            //Is North connected ?
-            if(currRow-1>=0 && this.grid[currRow][currCol].roadConnections.includes("north")){
-                connectedTo.push([currRow-1, currCol])
-            }
-            //Is East connected ?
-            if(currCol+1<COLS && this.grid[currRow][currCol].roadConnections.includes("east")){
-                connectedTo.push([currRow, currCol+1])
-            }
-            //Is South connected ?
-            if(currRow+1<ROWS && this.grid[currRow][currCol].roadConnections.includes("south")){
-                connectedTo.push([currRow+1, currCol])
-            }
-            //Is West connected ?
-            if(currCol-1>=0 && this.grid[currRow][currCol].roadConnections.includes("west")){
-                connectedTo.push([currRow, currCol-1])
-            }
-            if(connectedTo.length === 0) throw new Error("Error : How can a road have no connections????" + `Check row=${currRow}, col=${currCol}`)
-
-            for(let [connectionRow, connectionCol] of connectedTo){
-                if(!visited[connectionRow][connectionCol] && inP.length<pathMaxLength){
-                    solve([...inP, [connectionRow, connectionCol]])
-                }
-            }
-        }
-
-        let iterations = 0
-
-        const [targetRow, targetCol] = target
-        let res = []
-        let pathMaxLength = Infinity
-        solve([start])
-        console.log(`start : ${start}, target : ${target}, iteration : ${iterations}`)
-        return res
+        this.context.beginPath()
+        this.context.moveTo(targetX, targetY - 5)
+        this.context.lineTo(targetX + 10, targetY - 23)
+        this.context.lineTo(targetX, targetY - 16)
+        this.context.lineTo(targetX - 10, targetY - 23)
+        this.context.fill()
     }
 
+    // ([number, number], [number, number]) : Array<Array<number>>
+    // Flooding-like algo
     calculateCellPathDijkstra(start, target){
         const [startRow, startCol] = start
         const [targetRow, targetCol] = target
@@ -266,9 +221,7 @@ export default class Car{
         let res = [target]
         let [currCellRow, currCellCol] = target
 
-        console.log("predecessor Array :", predecessor);
-
-        while(currCellRow!==startRow || currCellCol!==startCol){ // Or !(currCellRow===startRow && currCellCol===startCol)
+        while(currCellRow!==startRow || currCellCol!==startCol){ // Or according to De Morgan's law !(currCellRow===startRow && currCellCol===startCol)
             res.unshift(predecessor[currCellRow][currCellCol])
             // [currCellRow, currCellCol] = [...predecessor[currCellRow][currCellCol]]
             let newCurCellRow = predecessor[currCellRow][currCellCol][0]
@@ -278,14 +231,14 @@ export default class Car{
         }
         // res.unshift(start)
 
-        console.log("start :", start)
-        console.log("target :", target)
-        console.log("path :", res)
+        // console.log("start :", start)
+        // console.log("target :", target)
+        // console.log("path :", res)
         return res
     }
 
     // (Array<Array<number>>) : Array<Array<number>>
-    //Once a cell path has been found, convert it to a pixel path our car can follow
+    // Once a cell path has been found, convert it to a pixel path our car can follow
     calculatePixelPath(path){
         //middle of cell -> side of cell -> middle of next cell -> etc. -> middle of target
         let res = []

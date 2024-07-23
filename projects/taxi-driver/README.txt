@@ -1,0 +1,3 @@
+The city is generated using a wave function collapse algorithm. It is in fact tiles that are connected to each others. Each tile can only have some possible neighboring tiles (where road are connected for instance). Starting with some randomized tiles, from neighbors to neighbors we can collapse the possible tiles into one a build a city.
+
+The path finding algorithm uses a flood-like or Dijkstra-like algorithm.

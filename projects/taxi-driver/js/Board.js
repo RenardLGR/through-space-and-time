@@ -23,8 +23,8 @@ export default class Board {
 
     //From the existing environment, this function generates the next generation
     next(){
-        this.car.next()
-        this.draw()
+        this.car.next() // do not trigger redraw, change position of the car
+        this.draw() // triggers redraw (of the board even if it is not changing and the car)
     }
 
     // (void) : void
@@ -158,6 +158,7 @@ export default class Board {
         this.drawBoard()
         this.drawCarPixelPath()
         this.drawCar()
+        this.drawTripTarget()
     }
 
     drawBoard(){
@@ -165,18 +166,23 @@ export default class Board {
             for(let col=0 ; col<COLS ; col++){
                 if(this.grid[row][col]){
                     this.grid[row][col].draw()
-                    this.grid[row][col].drawRedBorder()
+                    // this.grid[row][col].drawRedBorder()
                 }
             }
         }
     }
 
+    //==================== Draw car-related stuff, car itself, target and pixel path ======================
     drawCar(){
-        this.car.draw()
+        this.car.drawCar()
     }
 
     drawCarPixelPath(){
         this.car.drawPixelPath()
+    }
+
+    drawTripTarget(){
+        this.car.drawTripTarget()
     }
 
 
