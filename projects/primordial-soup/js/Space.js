@@ -6,7 +6,7 @@ export default class Board {
     constructor(context){
         this.context = context
         this.bodies = []
-        this.G = 10 // Gravitational constant
+        this.G = 9 // Gravitational constant
 
         this.initialize()
     }
@@ -24,7 +24,7 @@ export default class Board {
         // F12 is the force on body 1 due to body 2
         // G is the gravitational constant
         // r is the distance between the bodies r = sqrt((x1-x2)² + (y1-y2)²)
-        // u is the unit vector from body 1 to body 2 u = (r2-r1)/r = (x1-x2, y1-y2)/r
+        // u is the unit vector from body 1 to body 2 u = (r2-r1)/r = (x2-x1, y2-y1)/r
         // Finally, we have F12 = F1 = -F2
 
         // STEP 3 Calculate the acceleration
@@ -40,9 +40,37 @@ export default class Board {
         // STEP 5 Update the positions
         // r1' = r1 + v1'*Dt
         // r2' = r2 + v2'*Dt
+
+        const Dt = 0.3 // increase for bigger movements per refresh, decrease for smaller movements per refresh
+
+        let a1 = this.acceleration(this.bodies[0], this.bodies[1]) // acceleration in [x, y]
+        let v1 = [this.bodies[0].vx + a1[0]*Dt , this.bodies[0].vy + a1[1]*Dt] // velocity in [x, y]
+
+        let r1 = [this.bodies[0].px + v1[0]*Dt , this.bodies[0].py + v1[1]*Dt] // position in [x, y]
+
+        console.log("a1 :", a1);
+        console.log("v1 :", v1);
+        console.log("r1 :", r1);
+
+        this.bodies[0].vx = v1[0]
+        this.bodies[0].vy = v1[1]
+
+        this.bodies[0].px = r1[0]
+        this.bodies[0].py = r1[1]
+    }
+
+    // (CelestialBody, CelestialBody) : [number, number]
+    acceleration(body1, body2){
+        let r = Math.sqrt(Math.pow(body1.px-body2.px, 2) + Math.pow(body1.py-body2.py, 2))
+        let u = [(body2.px-body1.px)/r, (body2.py-body1.py)/r] // in [x, y]
+        let F12 = [u[0]*this.G*(body2.mass/Math.pow(r, 2)) , u[1]*this.G*(body2.mass/Math.pow(r, 2))] // in [x, y]
+
+        // F12 is the force on body 1 due to body 2
+        return F12
     }
 
     draw(){
+        console.log(this.bodies);
         this.bodies.forEach(b => b.draw())
     }
 
