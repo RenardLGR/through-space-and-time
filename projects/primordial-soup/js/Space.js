@@ -6,7 +6,8 @@ export default class Board {
     constructor(context){
         this.context = context
         this.bodies = []
-        this.G = 9 // Gravitational constant
+        this.G = 9 // Gravitational constant, increase to have a more "powerful" gravity
+        this.dt = 0.3 // increase for bigger movements per refresh, decrease for smaller movements per refresh
 
         this.initialize()
     }
@@ -41,42 +42,68 @@ export default class Board {
         // r1' = r1 + v1'*Dt
         // r2' = r2 + v2'*Dt
 
-        const Dt = 0.3 // increase for bigger movements per refresh, decrease for smaller movements per refresh
+        let accelerations = []
+        for(let i=0 ; i<this.bodies.length ; i++){
+            let ai = [0, 0]
+            for(let j=0 ; j<this.bodies.length ; j++){
+                if(i !== j){
+                    let aFromJ = this.acceleration(this.bodies[i], this.bodies[j])
+                    ai[0] += aFromJ[0]
+                    ai[1] += aFromJ[1]
+                }
+            }
+            console.log(i, ai);
+            accelerations.push(ai)
+        }
 
-        let a1 = this.acceleration(this.bodies[0], this.bodies[1]) // acceleration in [x, y]
-        let v1 = [this.bodies[0].vx + a1[0]*Dt , this.bodies[0].vy + a1[1]*Dt] // velocity in [x, y]
-
-        let r1 = [this.bodies[0].px + v1[0]*Dt , this.bodies[0].py + v1[1]*Dt] // position in [x, y]
-
-        console.log("a1 :", a1);
-        console.log("v1 :", v1);
-        console.log("r1 :", r1);
-
-        this.bodies[0].vx = v1[0]
-        this.bodies[0].vy = v1[1]
-
-        this.bodies[0].px = r1[0]
-        this.bodies[0].py = r1[1]
+        accelerations.forEach((a, i) => {
+            this.bodies[i].acceleration = a
+            this.bodies[i].next() // updates speed and position
+        })
     }
 
     // (CelestialBody, CelestialBody) : [number, number]
     acceleration(body1, body2){
-        let r = Math.sqrt(Math.pow(body1.px-body2.px, 2) + Math.pow(body1.py-body2.py, 2))
-        let u = [(body2.px-body1.px)/r, (body2.py-body1.py)/r] // in [x, y]
+        let [px1, py1] = body1.position
+        let [px2, py2] = body2.position
+        let r = Math.sqrt(Math.pow(px1-px2, 2) + Math.pow(py1-py2, 2))
+        let u = [(px2-px1)/r, (py2-py1)/r] // in [x, y]
         let F12 = [u[0]*this.G*(body2.mass/Math.pow(r, 2)) , u[1]*this.G*(body2.mass/Math.pow(r, 2))] // in [x, y]
 
         // F12 is the force on body 1 due to body 2
         return F12
     }
 
+
+    // When a collision is detected, a new celestial body should be created combining the mass and the velocity of the bodies. Furthermore, recheck if the new body has any collision, in which case repeat the process.
+    collision(){
+        for(let i=0 ; i<this.bodies.length ; i++){
+            let ai = [0, 0]
+            for(let j=0 ; j<this.bodies.length ; j++){
+                if(i !== j && this.areSuperposed(this.bodies[i], this.bodies[j])){
+
+                }
+            }
+        }
+    }
+
+    areColliding(body1, body2){
+        // Two circles are colliding if the sum of the radii is greater than the distance between the two centers.
+    }
+
     draw(){
-        console.log(this.bodies);
+        console.log(JSON.stringify(this.bodies))
         this.bodies.forEach(b => b.draw())
     }
 
     initialize(){
-        this.bodies.push(new CelestialBody(this.context, 30, 50, 10, -1, 1000))
-        this.bodies.push(new CelestialBody(this.context, 400, 400, 0, 0, 10000))
+        //(context, dt, acceleration, velocity, position, mass)
+        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [10, -1], [40, 50], 1000))
+        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [0, 0], [400, 400], 10000))
+        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [5, -4], [200, 800], 15000))
+
+        this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [5, 2], [100, 300], 15000))
+        this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [-5, 2], [500, 300], 15000))
     }
 
     //=================================================================
