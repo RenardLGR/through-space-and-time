@@ -9,6 +9,7 @@ export default class CelestialBody{
         //velocity as a vector with components in the x and y directions
         this.velocity = velocity
         this.mass = mass
+        this.radius = Math.cbrt(this.mass)
         this.color = "red"
     }
 
@@ -25,10 +26,8 @@ export default class CelestialBody{
     }
 
     draw(){
-        let radius = Math.cbrt(this.mass)
-
         this.context.beginPath();
-        this.context.arc(this.position[0], this.position[1], radius, 0, 2 * Math.PI);
+        this.context.arc(this.position[0], this.position[1], this.radius, 0, 2 * Math.PI);
         this.context.fillStyle = 'red';
         this.context.fill();
     }

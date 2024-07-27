@@ -1,5 +1,5 @@
 import Space from './Space.js'
-import { COLS, ROWS, CELL_SIZE, period } from './constants.js';
+import { WIDTH, HEIGHT, CELL_SIZE, period } from './constants.js';
 
 const pauseBtn = document.querySelector('.pause-btn')
 pauseBtn.addEventListener('click', () => {
@@ -11,11 +11,12 @@ const canvas = document.getElementById('myCanvas');
 const context = canvas.getContext('2d');
 
 //Canvas Initialization
-context.canvas.width = COLS * CELL_SIZE
-context.canvas.height = ROWS * CELL_SIZE
+context.canvas.width = WIDTH
+context.canvas.height = HEIGHT
 // context.scale(CELL_SIZE, CELL_SIZE) //the scale of 1 will now be scaled to a block size
 
 let space = new Space(context)
+window.space = space //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
 space.draw()
 let isPaused = false
 let requestId
