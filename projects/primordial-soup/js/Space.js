@@ -6,8 +6,9 @@ export default class Board {
     constructor(context){
         this.context = context
         this.bodies = []
-        this.G = 10 // Gravitational constant, increase to have a more "powerful" gravity
+        this.G = 5 // Gravitational constant, increase to have a more "powerful" gravity
         this.dt = 0.1 // increase for bigger movements per refresh, decrease for smaller movements per refresh
+        this.criticalMass = 100000 // the mass needed for a body to "explode"
 
         this.initialize()
     }
@@ -52,7 +53,6 @@ export default class Board {
                     ai[1] += aFromJ[1]
                 }
             }
-            console.log(i, ai);
             accelerations.push(ai)
         }
 
@@ -61,10 +61,17 @@ export default class Board {
             this.bodies[i].next() // updates speed and position
         })
 
-        //Check for collision, 
-        this.collision()
+        //Check for collision
+        this.checkingCollision()
+
+        //Check for critical mass
+        this.checkingCriticalMass()
+
+        //Low bodies
+        this.lowBodies()
     }
 
+    // Calculate the acceleration on body1 by body2
     // (CelestialBody, CelestialBody) : [number, number]
     acceleration(body1, body2){
         let [px1, py1] = body1.position
@@ -77,10 +84,115 @@ export default class Board {
         return F12
     }
 
+    // When there is very little bodies on the screen, get rid of those who are too far away, add new ones
+    // (void) : void
+    lowBodies(){
+        //Clean up
+        this.bodies = this.bodies.filter((b => this.isCloseToScreen(b)))
+
+        //Add
+        let minBodies = 10
+        while(this.bodies.length < minBodies){
+            let body = this.getIncomingBody()
+            
+            this.bodies.push(body)
+        }
+    }
+
+    // Get a celestial body from a side toward the center of the screen, as if it was appearing out of nowhere
+    // (void) : CelestialBody
+    getIncomingBody(){
+        let centerX = WIDTH / 2
+        let centerY = HEIGHT / 2
+        let delta = 50 //distance from the side of the screen in px where a body will be spawned
+
+        let direction = this.randomNumberBetween(0, 3)
+        let px
+        let py
+        let sign
+
+        switch (direction) {
+            //From North
+            case 0:
+                px = this.randomNumberBetween(0, WIDTH)
+                py = - delta
+                break;
+
+            case 1:
+                px = WIDTH + delta
+                py = this.randomNumberBetween(0, HEIGHT)
+                break;
+
+            case 2:
+                px = this.randomNumberBetween(0, WIDTH)
+                py = HEIGHT + delta
+                break;
+
+            case 3:
+                px = - delta
+                py = this.randomNumberBetween(0, HEIGHT)
+                break;
+
+            default:
+                break;
+        }
+
+        sign = px > centerX ? -1 : 1
+        let vx = sign * this.randomNumberBetween(5, 25)
+
+        sign = py > centerY ? -1 : 1
+        let vy = sign * this.randomNumberBetween(5, 25)
+
+        return new CelestialBody(this.context, this.dt, [0, 0], [vx, vy], [px, py], this.randomNumberBetween(50, 2000))
+    }
+
+    // (CelestialBody) : boolean
+    isCloseToScreen(body){
+        let [px, py] = body.position
+        let maxDistance = 100 // max distance from the side of the screen
+        return (px>-maxDistance && px<maxDistance+WIDTH && py>-maxDistance && py<maxDistance+HEIGHT)
+    }
+
+    // When a critical mass is detected, it explodes in multiple bodies adding up to its original mass
+    // (void) : void
+    checkingCriticalMass(){
+        for(let i=0 ; i<this.bodies.length ; i++){
+            if(this.isCriticalMass(this.bodies[i])){
+                let newBodies = this.getCriticalMassResult(this.bodies[i])
+                this.bodies.splice(i ,1)
+                this.bodies = this.bodies.concat(newBodies)
+            }
+        }
+    }
+
+    // When a body reaches a critical mass, it explodes in multiple bodies adding up to its original mass
+    // (CelestialBody) : boolean
+    isCriticalMass(body){
+        return body.mass > this.criticalMass
+    }
+
+    // When a body reaches a critical mass, it explodes in multiple bodies adding up to its original mass
+    // (CelestialBody) : Array <CelestialBody>
+    getCriticalMassResult(body){
+        // Tbh what happens here is not very crucial as the distance between bodies will be so small, their acceleration will be immense and hard to predict. The viewing effect is however quite pleasing
+        let m = body.mass
+        let [px, py] = body.position
+
+        let res = []
+        for(let i=0 ; i<this.randomNumberBetween(1, 3) ; i++){
+            let randMass = this.randomNumberBetween(50, m)
+            m -= randMass
+            res.push(new CelestialBody(this.context, this.dt, [0, 0], [this.randomNumberBetween(-5, 5), this.randomNumberBetween(-5, 5)], [px+this.randomNumberBetween(-10, 10), py+this.randomNumberBetween(-10, 10)], Math.max(50, randMass)))
+        }
+
+        res.push(new CelestialBody(this.context, this.dt, [0, 0], [this.randomNumberBetween(-5, 5), this.randomNumberBetween(-5, 5)], [px+this.randomNumberBetween(-10, 10), py+this.randomNumberBetween(-10, 10)], Math.max(50, m)))
+        return res
+    }
+
 
     // When a collision is detected, a new celestial body should be created combining the mass and the velocity of the bodies. Furthermore, recheck if the new body has any collision, in which case repeat the process.
     // (void) : void
-    collision(){
+    checkingCollision(){
         for(let i=0 ; i<this.bodies.length ; i++){
             for(let j=0 ; j<this.bodies.length ; j++){
                 //Delete i and j bodies
@@ -89,7 +201,7 @@ export default class Board {
                     this.bodies.splice(j ,1)
                     this.bodies.splice(i ,1)
                     this.bodies.push(body)
-                    this.collision()
+                    this.checkingCollision()
                 }
             }
         }
@@ -133,21 +245,20 @@ export default class Board {
     }
 
     draw(){
-        console.log(JSON.stringify(this.bodies))
         this.bodies.forEach(b => b.draw())
     }
 
     initialize(){
         //(context, dt, acceleration, velocity, position, mass)
-        for(let i=0 ; i<50 ; i++){
+        // Big ones
+        for(let i=0 ; i<10 ; i++){
             this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [this.randomNumberBetween(-10, 10), this.randomNumberBetween(-10, 10)], [this.randomNumberBetween(0, WIDTH), this.randomNumberBetween(0, HEIGHT)], this.randomNumberBetween(50, 2000)))
         }
-        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [10, -1], [40, 50], 100))
-        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [0, 0], [400, 400], 1000))
-        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [5, -4], [200, 800], 1500))
 
-        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [5, 2], [100, 300], 1500))
-        // this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [-5, 2], [500, 300], 1500))
+        //Small ones
+        for(let i=0 ; i<10 ; i++){
+            this.bodies.push(new CelestialBody(this.context, this.dt, [0, 0], [this.randomNumberBetween(-40, 40), this.randomNumberBetween(-40, 40)], [this.randomNumberBetween(0, WIDTH), this.randomNumberBetween(0, HEIGHT)], this.randomNumberBetween(10, 200)))
+        }
     }
 
     //=================================================================
