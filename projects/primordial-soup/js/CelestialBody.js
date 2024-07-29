@@ -1,5 +1,6 @@
 export default class CelestialBody{
     constructor(context, dt, acceleration, velocity, position, mass){
+        this.id = "celestial-body"
         this.context = context
         this.dt = dt
         //acceleration as a vector with components in the x and y directions
@@ -12,8 +13,6 @@ export default class CelestialBody{
         this.radius = Math.cbrt(this.mass)
         this.color = "red"
     }
-
-    //Getters
 
     next(){
         const [ax, ay] = this.acceleration
@@ -28,7 +27,7 @@ export default class CelestialBody{
     draw(){
         this.context.beginPath();
         this.context.arc(this.position[0], this.position[1], this.radius, 0, 2 * Math.PI);
-        this.context.fillStyle = 'red';
+        this.context.fillStyle = this.color
         this.context.fill();
     }
 }

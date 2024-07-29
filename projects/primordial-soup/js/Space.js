@@ -1,6 +1,7 @@
 import { WIDTH, HEIGHT, CELL_SIZE, period } from './constants.js';
 
 import CelestialBody from './CelestialBody.js';
+import BlackHole from './BlackHole.js';
 
 export default class Board {
     constructor(context){
@@ -8,7 +9,7 @@ export default class Board {
         this.bodies = []
         this.G = 5 // Gravitational constant, increase to have a more "powerful" gravity
         this.dt = 0.1 // increase for bigger movements per refresh, decrease for smaller movements per refresh
-        this.criticalMass = 100000 // the mass needed for a body to "explode"
+        this.criticalMass = 100000 // the mass needed for a body to "explode" or get a blackhole
 
         this.initialize()
     }
@@ -143,6 +144,11 @@ export default class Board {
         sign = py > centerY ? -1 : 1
         let vy = sign * this.randomNumberBetween(5, 25)
 
+        // Chance to spawn a blackhole
+        if(Math.random()<0.00){
+            return new BlackHole(this.context, this.dt, [0, 0], [vx*8, vy*8], [px, py], undefined)
+        }
+
         return new CelestialBody(this.context, this.dt, [0, 0], [vx, vy], [px, py], this.randomNumberBetween(50, 2000))
     }
 
@@ -154,10 +160,11 @@ export default class Board {
     }
 
     // When a critical mass is detected, it explodes in multiple bodies adding up to its original mass
+    // UPDATE : We get a blackhole
     // (void) : void
     checkingCriticalMass(){
         for(let i=0 ; i<this.bodies.length ; i++){
-            if(this.isCriticalMass(this.bodies[i])){
+            if(this.bodies[i].id!=="black-hole" && this.isCriticalMass(this.bodies[i])){
                 let newBodies = this.getCriticalMassResult(this.bodies[i])
                 this.bodies.splice(i ,1)
                 this.bodies = this.bodies.concat(newBodies)
@@ -166,18 +173,24 @@ export default class Board {
     }
 
     // When a body reaches a critical mass, it explodes in multiple bodies adding up to its original mass
+    // UPDATE : We get a blackhole
     // (CelestialBody) : boolean
     isCriticalMass(body){
         return body.mass > this.criticalMass
     }
 
     // When a body reaches a critical mass, it explodes in multiple bodies adding up to its original mass
+    // UPDATE : We get a blackhole
     // (CelestialBody) : Array <CelestialBody>
     getCriticalMassResult(body){
-        // Tbh what happens here is not very crucial as the distance between bodies will be so small, their acceleration will be immense and hard to predict. The viewing effect is however quite pleasing
         let m = body.mass
         let [px, py] = body.position
+        let [vx, vy] = body.velocity
 
+        //return a blackhole
+        return new BlackHole(this.context, this.dt, [0, 0], [Math.max(vx, 0.5)*12, Math.max(vy, 0.5)*12], [px, py], m)
+
+        // Tbh what happens here is not very crucial as the distance between bodies will be so small, their acceleration will be immense and hard to predict. The viewing effect is however quite pleasing
         let res = []
         for(let i=0 ; i<this.randomNumberBetween(1, 3) ; i++){
             let randMass = this.randomNumberBetween(50, m)
@@ -225,6 +238,7 @@ export default class Board {
     // Get a new celestial body resulting of the collision
     // (CelestialBody, CelestialBody) : CelestialBody
     getCollisionResult(body1, body2){
+        let isBlackHole = body1.id === "black-hole" || body2.id === "black-hole"
         let m1 = body1.mass
         let m2 = body2.mass
         let m = m1 + m2
@@ -241,7 +255,7 @@ export default class Board {
         let vx = (m1*vx1 + m2*vx2) / (m1 + m2) 
         let vy = (m1*vy1 + m2*vy2) / (m1 + m2)
 
-        return new CelestialBody(this.context, this.dt, [0, 0], [vx, vy], [px, py], m)
+        return isBlackHole ? new BlackHole(this.context, this.dt, [0, 0], [vx, vy], [px, py], m) : new CelestialBody(this.context, this.dt, [0, 0], [vx, vy], [px, py], m)
     }
 
     draw(){
