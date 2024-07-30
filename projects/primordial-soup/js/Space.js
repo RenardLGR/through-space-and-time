@@ -44,6 +44,7 @@ export default class Board {
         // r1' = r1 + v1'*Dt
         // r2' = r2 + v2'*Dt
 
+        // The net acceleration for body i is the sum of the accelerations due to all other bodies:
         let accelerations = []
         for(let i=0 ; i<this.bodies.length ; i++){
             let ai = [0, 0]
