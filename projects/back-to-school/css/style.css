@@ -1,0 +1,30 @@
+body{
+    /* background-color: #e9f0c7; */
+    background-color: #f1ffc4;
+}
+
+canvas {
+    border: 1px solid black; /* Add a border to the canvas for visibility */
+    display: block; /* Make the canvas a block-level element */
+    margin: auto; /* Center the canvas horizontally */
+    position: absolute; /* Position the canvas absolutely */
+    top: 0; bottom: 0; /* Center the canvas vertically */
+    left: 0; right: 0; /* Center the canvas horizontally */
+    background-color: #2e2d2c;
+}
+
+.pause-btn {
+    position: absolute; /* Position the button absolutely within the canvas container */
+    bottom: 20vh; /* 10px from the bottom */
+    right: 20vw; /* 10px from the right */
+    padding: 8px 16px; /* Padding for better appearance */
+    background-color: #007bff; /* Button background color */
+    color: #fff; /* Button text color */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Apply border radius for rounded corners */
+}
+
+.pause-btn:hover {
+    background-color: #0056b3; /* Darker background color on hover */
+}
