@@ -8,13 +8,14 @@ export default class Space {
         this.boids = []
         this.dt = 0.1 // increase for bigger movements per refresh, decrease for smaller movements per refresh
 
-        this.flockRadius = 200 // in px, an individual boid maneuvers based on the positions and velocities its nearby flockmates, flockRadius put a value to "nearby"
+        this.flockRadius = 100 // in px, an individual boid maneuvers based on the positions and velocities its nearby flockmates, flockRadius put a value to "nearby"
         this.steeringMaxForce = 0.5 // steering is a force to incentivize a boid to move alongside its flockmates
 
         this.initialize()
     }
 
     next(){
+        //align
         this.boids.forEach(b => {
             b.acceleration = this.getSteeringForce(b)
         })
@@ -26,27 +27,32 @@ export default class Space {
     
     // (Boid) : [number, number]
     // steering is a force to incentivize a boid to move alongside its flockmates, it will change the acceleration of a boid
-    // it is the difference between the current velocity and the desired velocity (an average of the flockmates' velocities)
+    // it is the difference between the desired velocity (an average of the flockmates' velocities) and the current velocity
     getSteeringForce(boid){
         let steeringForce = [0, 0]
         let ct = 0
         for(let i=0 ; i<this.boids.length ; i++){
             // The strict equality operator checks for reference equality when it comes to objects.
+            // boid !== this.boids[i] 
             let distance = this.getDistanceBetweenTwoBoids(boid, this.boids[i])
-            if(boid !== this.boids[i] && distance <= this.flockRadius){
+            if(distance <= this.flockRadius){
                 ct++
-                steeringForce[0] += boid.velocity[0]
-                steeringForce[1] += boid.velocity[1]
+                steeringForce[0] += this.boids[i].velocity[0]
+                steeringForce[1] += this.boids[i].velocity[1]
             }
         }
 
         // averaging
-        steeringForce[0] /= ct
-        steeringForce[1] /= ct
+        if(ct > 0){
+            steeringForce[0] /= ct
+            steeringForce[1] /= ct
+        }
 
-        steeringForce[0] = boid.velocity[0] - steeringForce[0]
-        steeringForce[1] = boid.velocity[1] - steeringForce[1]
+        //difference between the desired velocity and the current velocity
+        steeringForce[0] -= boid.velocity[0]
+        steeringForce[1] -= boid.velocity[1]
 
+        //TODO limit the length of the vector to the maximum steering force
         return steeringForce
     }
 
@@ -59,8 +65,8 @@ export default class Space {
     }
 
     initialize(){
-        for(let i=0 ; i<40 ; i++){
-            this.boids.push(new Boid(this.context, this.dt, [0, 0], [this.randomNumberBetween(1, 5), this.randomNumberBetween(1, 5)], [this.randomNumberBetween(1, WIDTH), this.randomNumberBetween(1, HEIGHT)], 1))
+        for(let i=0 ; i<30 ; i++){
+            this.boids.push(new Boid(this.context, this.dt, [0, 0], [this.randomNumberBetween(-20, 20), this.randomNumberBetween(-20, 20)], [this.randomNumberBetween(1, WIDTH), this.randomNumberBetween(1, HEIGHT)], 1))
         }
     }
 
