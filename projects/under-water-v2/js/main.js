@@ -1,5 +1,5 @@
-import Space from './Space.js'
-import { WIDTH, HEIGHT, CELL_SIZE, period } from './constants.js';
+import Board from './Board.js'
+import { WIDTH, HEIGHT, period } from './constants.js';
 
 const pauseBtn = document.querySelector('.pause-btn')
 pauseBtn.addEventListener('click', () => {
@@ -10,19 +10,19 @@ pauseBtn.addEventListener('click', () => {
 const canvas = document.getElementById('myCanvas');
 const context = canvas.getContext('2d');
 
-//Canvas Initialization
+//GRID Initialization
 context.canvas.width = WIDTH
 context.canvas.height = HEIGHT
 // context.scale(CELL_SIZE, CELL_SIZE) //the scale of 1 will now be scaled to a block size
 
-let space = new Space(context)
-window.space = space //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
-space.draw()
+let board = new Board(context)
+window.board = board //make variables from your module accessible in the global scope, you need to explicitly attach them to the window object.
 let isPaused = false
 let requestId
 let time
 
 play()
+// board.draw()
 
 
 function play() {
@@ -40,8 +40,8 @@ function animate(now = 0) {
     if(time.elapsed > period && !isPaused){
         time.start = now
         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-        space.next()
-        space.draw()
+        board.next() //TODO
+        board.draw() //TODO
     }
 
     requestId = requestAnimationFrame(animate)
